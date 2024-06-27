@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { SubmitButton } from "./submit-button";
+import AzureButton from "./azure-button";
 
 export default function Login({
   searchParams,
@@ -22,6 +23,30 @@ export default function Login({
     });
 
     if (error) {
+      return redirect("/login?message=Could not authenticate user");
+    }
+
+    return redirect("/protected");
+  };
+
+  const signInWithAzure = async () => {
+    "use server";
+    const supabase = createClient();
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "azure",
+      options: {
+        scopes: "email offline_access openid profile",
+        redirectTo: "http://localhost:3000/auth/callback",
+      },
+    });
+
+    if (data.url) {
+      redirect(data.url); // use the redirect API for your server framework
+    }
+
+    if (error) {
+      console.log("its gone tits:", error);
       return redirect("/login?message=Could not authenticate user");
     }
 
@@ -101,6 +126,7 @@ export default function Login({
         >
           Sign In
         </SubmitButton>
+
         <SubmitButton
           formAction={signUp}
           className="border border-foreground/20 rounded-md px-4 py-2 text-foreground mb-2"
@@ -114,6 +140,7 @@ export default function Login({
           </p>
         )}
       </form>
+      <AzureButton action={signInWithAzure} />
     </div>
   );
 }
