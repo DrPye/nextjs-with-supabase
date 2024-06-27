@@ -32,12 +32,13 @@ export default function Login({
   const signInWithAzure = async () => {
     "use server";
     const supabase = createClient();
+    const origin = headers().get("origin");
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "azure",
       options: {
         scopes: "email offline_access openid profile",
-        redirectTo: "http://localhost:3000/auth/callback",
+        redirectTo: `${origin}/auth/callback`,
       },
     });
 
